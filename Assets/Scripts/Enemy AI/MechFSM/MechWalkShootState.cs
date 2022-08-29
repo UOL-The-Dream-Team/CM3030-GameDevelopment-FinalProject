@@ -37,7 +37,6 @@ public class MechWalkShootState : MechBaseState
          * Here we are getting the FSM MonoBehaviour to begin this coroutine.
          */
         FSM.StartCoroutine(SeekStatusCheck());
-
     }
 
     IEnumerator SeekStatusCheck()
@@ -45,11 +44,10 @@ public class MechWalkShootState : MechBaseState
         // Waits the prescribed amount of time
         yield return new WaitForSeconds(targetPositionUpdateTime);
 
-        // Rotate and Fire
-        RotateTorso();
-        FireAtPlayer();
+        FireMainCannons();
+        FireSecondaryCannons();
 
-        Debug.Log(Vector3.Distance(NPC.transform.position, destination));
+        //Debug.Log(Vector3.Distance(NPC.transform.position, destination));
 
         // If we have lost line of sight with the player, go back to seeking.
         if (!HasLineOfSight())
@@ -68,6 +66,59 @@ public class MechWalkShootState : MechBaseState
         FSM.StartCoroutine(SeekStatusCheck());
     }
 
+    void FireMainCannons()
+    {
+        if (!isFiringMain) {
+            if(mainLR)
+            {
+                FSM.ShootBigCanonA();
+            }
+            else
+            {
+                FSM.ShootBigCanonB();
+            }
+            mainLR = !mainLR;
+            
+            isFiringMain = true;
+            FSM.StartCoroutine(MainCooldown());
+        }
+    }
+
+    IEnumerator MainCooldown()
+    {
+        // Waits the prescribed amount of time
+        yield return new WaitForSeconds(mainGunFiringRate);
+
+        isFiringMain = false;
+    }
+
+    void FireSecondaryCannons()
+    {
+        if (!isFiringSecondary)
+        {
+            if (secondLR)
+            {
+                FSM.ShootSmallCanonA();
+            }
+            else
+            {
+                FSM.ShootSmallCanonB();
+            }
+            secondLR = !secondLR;
+
+            isFiringSecondary = true;
+            FSM.StartCoroutine(SecondaryCooldown());
+        }
+    }
+
+    IEnumerator SecondaryCooldown()
+    {
+        // Waits the prescribed amount of time
+        yield return new WaitForSeconds(secondaryGunFiringRate);
+
+        isFiringSecondary = false;
+    }
+
     /// <summary>
     /// Method <c>RotateTorso</c> Rotates the mech's torso to face the player.
     /// </summary>
@@ -81,7 +132,7 @@ public class MechWalkShootState : MechBaseState
     /// </summary>
     private void FireAtPlayer()
     {
-
+        
     }
 
     /// <summary>
